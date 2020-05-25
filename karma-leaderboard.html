@@ -45,16 +45,63 @@
 			<li><a href="https://clwo.eu/ttt/sourcebans/"><i class="material-icons left">gavel</i><span>TTT bans</span=></a></li>
 		  </ul>
 	</div>
-	
-	<div class="container" style="border: 1px solid rgba(160, 160, 160, 0.3); background-color: white;">
 
+	<div class="container row" style="border: 1px solid rgba(160, 160, 160, 0.3); background-color: white; margin-bottom: 0 !important;">
+		<div class="section col s12">
+			<div class="panel-header" style="padding-left: 1em;">
+				<h2 style="margin-top: 1rem;">From ritz to rubble</h2>
+				<span class="card-subtitle">A total ranking of active player's karma</span>
+			</div>
+			<div class="divider"></div>
+			<div class="row">
+				<div class="card col s12 left">
+					<div class="card-content center-align">
+						<table id="karmaLeaderboard" class="highlight">
+							<tbody id="karmaData"></tbody>
+						</table>
+					</div>
+					<div class="card-action center-align" style="border-top: none;">
+						<a class="btn-flat more_info" href="karma-leaderboard.html" style="padding-left: 1rem; margin: auto">
+							Next page
+						</a>
+					</div>
+				</div>
+			</div>
+		</div>
 	</div>
 
     <!--JavaScript at end of body for optimized loading-->
 	<script type="text/javascript" src="js/materialize.min.js"></script>
 	<script type="text/javascript" src="js/auto-init.js"></script>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+	<script type="text/javascript">
+		function Get(yourUrl){
+			var Httpreq = new XMLHttpRequest(); // a new request
+			Httpreq.open("GET",yourUrl,false);
+			Httpreq.send(null);
+			return Httpreq.responseText;          
+		}
+
+		var json_obj = JSON.parse(Get('https://clwo.eu/jailbreak/api/v2/ttt_karma.php?MaxPerPage=10'));
+		var top_karma = json_obj.data;
 	
+		function topMonthKarmaTable(){
+			const table = document.getElementById("karmaData");
+			for(var i = 0; i < 10; i++) {
+				var player = top_karma[i];
+				let row = table.insertRow();
+				let account = row.insertCell(0);
+				var json_player= JSON.parse(Get('https://clwo.eu/jailbreak/api/v2/accounthelper.php?AccountID='+player.AccountID));
+				var player_profile = json_player.SteamData;
+				console.log();
+				account.innerHTML = '<a href="'+player_profile.profileurl+'">'+player_profile.personaname+'</a>';
+				let karma = row.insertCell(1);
+				karma.innerHTML = player.Karma;
+			}
+		}
+
+		topMonthKarmaTable();
+		</script>
     </body>
   
 </html>

@@ -42,6 +42,11 @@ footer ul > li > a >span{
     margin-top: 1.5em;
 }
 
+.section {
+    padding-top: 0.5rem;
+    padding-bottom: 0.5rem;
+}
+
 .logo {
     color: #3c3b3b;
     font-family: "Raleway", Helvetica, sans-serif;
@@ -213,4 +218,8 @@ footer > span > a {
 
 .panels {
     background-color: white;
+}
+
+table {
+    font-size: 12pt;
 }
