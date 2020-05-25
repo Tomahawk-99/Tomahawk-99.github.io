@@ -153,13 +153,15 @@
 		const table = document.getElementById("karmaData");
 		for(var i = 0; i < 8; i++) {
 			var player = top_karma[i];
-			let row = table.insertRow();
-			let account = row.insertCell(0);
 			var json_player= JSON.parse(Get('https://clwo.eu/jailbreak/api/v2/accounthelper.php?AccountID='+player.AccountID));
 			var player_profile = json_player.SteamData;
+			let row = table.insertRow();
+			let pfp = row.insertCell(0);
+			pfp.innerHTML = '<img src="'+player_profile.avatarfull+'" alt="" width="30px" height="30px">';
+			let account = row.insertCell(1);
 			console.log();
-			account.innerHTML = '<a href="'+player_profile.profileurl+'">'+player_profile.personaname+'</a>';
-			let karma = row.insertCell(1);
+			account.innerHTML = '<a href="'+player_profile.profileurl+'" class="truncate" style="padding-left: 5px;">'+player_profile.personaname+'</a>';
+			let karma = row.insertCell(2);
 			karma.innerHTML = player.Karma;
 		}
 	}
