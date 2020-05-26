@@ -60,17 +60,31 @@
 	<div class="container row" style="border: 1px solid rgba(160, 160, 160, 0.3); background-color: white;">
 		<div class="content">
 			<ul id="tabs-swipe-demo" class="tabs">
-				<li class="tab col s3"><a class="active" href="#today">Top Traitor</a></li>
-				<li class="tab col s3"><a class="active" href="#month">Top Innocent</a></li>
-				<li class="tab col s3"><a class="active" href="#all">Top Sleuth</a></li>
+				<li class="tab col s3"><a class="active" href="#traitor">Top Traitor</a></li>
+				<li class="tab col s3"><a class="active" href="#inno">Top Innocent</a></li>
+				<li class="tab col s3"><a class="active" href="#sleuth">Top Sleuth</a></li>
 				<li class="tab col s3"><a class="active" href="#stonks">TOp Stonks</a></li>
 			</ul>
-			<div id="today" class="col s12" style="height: 65vh;">
-				<div class="chart" id="last_day"></div>
+			<div id="traitor" class="col s12" style="height: 65vh;">
+				<div class="row">
+					<div class="card col s12 left">
+						<div class="card-content center-align">
+							<table id="traitor" class="highlight">
+								<tbody id="top_traitor"></tbody>
+							</table>
+						</div>
+					</div>
+				</div>
 			</div>
-			<div id="month" class="col s12" style="height: 65vh;"><div class="chart" id="last_month"></div></div>
-			<div id="all" class="col s12 panels" style="height: 65vh;"><div class="chart" id="all_time" style="height: 700px;"></div></div>
-			<div id="stonks" class="col s12 panels" style="height: 65vh;"><div class="chart" id="all_time" style="height: 700px;"></div></div>
+			<div id="inno" class="col s12" style="height: 65vh;">
+				<div id="top_inno"></div>
+			</div>
+			<div id="sleuth" class="col s12 panels" style="height: 65vh;">
+				<div id="top_slueth" style="height: 700px;"></div>
+			</div>
+			<div id="stonks" class="col s12 panels" style="height: 65vh;">
+				<div  id="top_stonks" style="height: 700px;"></div>
+			</div>
 		</div>
 	</div>
 	
@@ -78,7 +92,111 @@
 	<script type="text/javascript" src="js/materialize.min.js"></script>
 	<script type="text/javascript" src="js/auto-init.js"></script>
     <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
-	
+	<script>
+		function Get(yourUrl){
+			var Httpreq = new XMLHttpRequest(); // a new request
+			Httpreq.open("GET",yourUrl,false);
+			Httpreq.send(null);
+			return Httpreq.responseText;          
+		}
+
+		var json_obj = JSON.parse(Get('https://clwo.eu/jailbreak/api/v2/ttt_shopstats.php'));
+		var last_purchases = json_obj.data.LastPurchaseDateTime.data;
+		var purchase_index = [];
+		json_obj = JSON.parse(Get('https://clwo.eu/jailbreak/api/v2/ttt_karma.php'));
+		var top_karma = json_obj.data;
+		var player_stats = JSON.parse(Get('https://clwo.eu/jailbreak/api/v2/ttt_stats.php'));
+
+		function topMonthKarmaTable(map){
+			const table = document.getElementById("karmaData");
+			for(var i = 0; i < 8; i++) {
+				var player = map.entries().next().value;
+				var json_player= JSON.parse(Get('https://clwo.eu/jailbreak/api/v2/accounthelper.php?AccountID='+player[0]));
+				var player_profile = json_player.SteamData;
+				let row = table.insertRow();
+				let pfp = row.insertCell(0);
+				pfp.innerHTML = '<img src="'+player_profile.avatarfull+'" alt="" width="30px" height="30px">';
+				let account = row.insertCell(1);
+				console.log();
+				account.innerHTML = '<a href="'+player_profile.profileurl+'" class="truncate" style="padding-left: 5px;">'+player_profile.personaname+'</a>';
+				let karma = row.insertCell(2);
+				karma.innerHTML = +Math.round(player[1])+' player rating';
+				map.delete(player[0]);
+			}
+		}
+
+		function getTopKarmaGain(){
+			let karmaGain = new Map();
+			const max_pages = player_stats.pagination.max_pages;
+			var i = 0;
+			for(i; i<max_pages;i++) {
+				if (i==0) {
+					for (var entry of Object.entries(player_stats.data)) {
+						if(entry[1].rounds_played < 1) {
+							continue;
+						}
+						var round_rating = getRoundRating(entry[1]);
+						var damage_rating = getDamageRating(entry[1]);
+						var kill_rating = getKillRating(entry[1]);
+						var sleuth_rating = getSleuthRating(entry[1]);
+						var player_rating = round_rating+damage_rating+kill_rating+sleuth_rating;
+						karmaGain.set(entry[1].AccountID, player_rating);
+					}
+				} else {
+					player_stats = JSON.parse(Get('https://clwo.eu/jailbreak/api/v2/ttt_stats.php?Page='+(i+1)));
+					for (var entry of Object.entries(player_stats.data)) {
+						//var round_rating = getRoundRating(entry[1]);
+						var damage_rating = getDamageRating(entry[1]);
+						var kill_rating = getKillRating(entry[1]);
+						var sleuth_rating = getSleuthRating(entry[1]);
+						var player_rating = damage_rating+kill_rating+sleuth_rating;
+						karmaGain.set(entry[1].AccountID, player_rating);
+					}
+				}
+			}
+
+			function getRoundRating(player_data) {
+				return (((player_data.rounds_won/player_data.rounds_played)+(player_data.played_as_detective/player_data.rounds_played))*100);
+			}
+
+			function getDamageRating(player_data) {
+				return ((player_data.damage_given-player_data.bad_damage_given)/player_data.shots_fired)+((player_data.damage_taken+(player_data.bad_damage_taken/2))/1000);
+			}
+
+			function getKillRating(player_data){
+				return ((((player_data.killed_innocents*2)+(player_data.killed_traitors*5)+(player_data.killed_detectives*3))*(1-getRdmPercent(player_data)))/10);
+			}
+
+			function getRdmPercent(player_data){
+				return player_data.bad_kills /(player_data.killed_innocents + player_data.killed_traitors + player_data.killed_detectives);
+			}
+
+			function getSleuthRating(player_data) {
+				return ((player_data.identified_bodies/1000)+(player_data.identified_bodies/1000)+(player_data.identified_traitors/player_data.identified_bodies)+(player_data.scanned_traitors/player_data.scanned_bodies))*100;
+			}
+
+			return getMaxKarma(karmaGain);
+		}
+
+		function getMaxKarma(karmaGain) {
+			var map = karmaGain;
+			var top10 = new Map();
+			while(top10.size < 10) {
+				var max = map.entries().next().value;
+				for(let [k,v] of map) {
+					if(v > max[1]) {
+						max = [k, v];
+					}
+				}
+				map.delete(max[0]);
+				top10.set(max[0], max[1]);
+			}
+			return top10;
+		}
+
+		lastPurchasesTable();
+		topMonthKarmaTable(getTopKarmaGain());
+	</script>
     </body>
   
 </html>

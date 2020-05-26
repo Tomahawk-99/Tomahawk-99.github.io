@@ -46,8 +46,8 @@
 		  </ul>
 	</div>
 
-	<div class="container row" style="border: 1px solid rgba(160, 160, 160, 0.3); background-color: white; margin-bottom: 0 !important;">
-		<div class="section col s12">
+	<div id="karma-html" class="container row" style="border: 1px solid rgba(160, 160, 160, 0.3); background-color: white; margin-bottom: 0 !important; height: auto;">
+		<div class="section col s12" style="height: 825px;">
 			<div class="panel-header" style="padding-left: 1em;">
 				<h2 style="margin-top: 1rem;">From ritz to rubble</h2>
 				<span class="card-subtitle">A total ranking of active player's karma</span>
@@ -56,14 +56,15 @@
 			<div class="row">
 				<div class="card col s12 left">
 					<div class="card-content center-align">
-						<table id="karmaLeaderboard" class="highlight">
+						<table id="topLeaderboard" class="highlight">
 							<tbody id="karmaData"></tbody>
 						</table>
 					</div>
 					<div class="card-action center-align" style="border-top: none;">
-						<a class="btn-flat more_info" href="karma-leaderboard.html" style="padding-left: 1rem; margin: auto">
-							Next page
-						</a>
+						<ul class="pagination">
+							<li class="waves-effect"><a href="javascript:prevPage()" id="btn_prev" class="disabled"><i class="material-icons">chevron_left</i></a></li>
+							<li class="waves-effect"><a href="javascript:nextPage()" id="btn_next" ><i class="material-icons">chevron_right</i></a></li>
+						  </ul>
 					</div>
 				</div>
 			</div>
@@ -82,25 +83,91 @@
 			return Httpreq.responseText;          
 		}
 
-		var json_obj = JSON.parse(Get('https://clwo.eu/jailbreak/api/v2/ttt_karma.php?MaxPerPage=10'));
-		var top_karma = json_obj.data;
-	
-		function topMonthKarmaTable(){
-			const table = document.getElementById("karmaData");
-			for(var i = 0; i < 10; i++) {
-				var player = top_karma[i];
-				let row = table.insertRow();
-				let account = row.insertCell(0);
-				var json_player= JSON.parse(Get('https://clwo.eu/jailbreak/api/v2/accounthelper.php?AccountID='+player.AccountID));
-				var player_profile = json_player.SteamData;
-				console.log();
-				account.innerHTML = '<a href="'+player_profile.profileurl+'">'+player_profile.personaname+'</a>';
-				let karma = row.insertCell(1);
-				karma.innerHTML = player.Karma;
+		var api_data = JSON.parse(Get('https://clwo.eu/jailbreak/api/v2/ttt_karma.php?MaxPerPage=10&&Page=1'));
+		var max_pages = api_data.pagination.max_pages;
+		var current_page = 1;
+
+		function prevPage()
+		{
+			if (current_page > 1) {
+				current_page--;
+				changePage(current_page);
 			}
 		}
 
-		topMonthKarmaTable();
+		function nextPage()
+		{
+			if (current_page < max_pages) {
+				current_page++;
+				changePage(current_page);
+			}
+		}
+
+		function changePage(page)
+		{
+			var btn_next = document.getElementById("btn_next");
+			var btn_prev = document.getElementById("btn_prev");
+		
+			// Validate page
+			if (page < 1) page = 1;
+			if (page > max_pages) page = max_pages;
+
+			if (page == 1) {
+				btn_next.classList.add = "disabled";
+			} else {
+				btn_next.classList.remove = "disabled";
+			}
+
+			if (page == max_pages) {
+				btn_next.classList.add = "disabled waves-effect";
+			} else {
+				btn_next.classList.remove = "disabled";
+			}
+			topKarmaTable(current_page);
+		}
+
+		window.onload = function() {
+			changePage(1);
+		};
+	
+		function topKarmaTable(page){
+			destoryOld();
+			
+			var json_obj = JSON.parse(Get('https://clwo.eu/jailbreak/api/v2/ttt_karma.php?MaxPerPage=10&&Page='+page));
+			var top_karma = json_obj.data;
+			const table = document.getElementById("karmaData");
+
+			for(var i = 0; i < json_obj.results; i++) {
+				var player = top_karma[i];
+				var json_player= JSON.parse(Get('https://clwo.eu/jailbreak/api/v2/accounthelper.php?AccountID='+player.AccountID));
+				var json_stats = JSON.parse(Get('https://clwo.eu/jailbreak/api/v2/ttt_stats.php?AccountID='+player.AccountID));
+				var player_data = json_stats.data;
+				var player_profile = json_player.SteamData;
+				let row = table.insertRow();
+				let pfp = row.insertCell(0);
+				pfp.innerHTML = '<img src="'+player_profile.avatarfull+'" alt="" width="30px" height="30px">';
+				let account = row.insertCell(1);
+				account.innerHTML = '<a href="'+player_profile.profileurl+'" class="truncate" style="padding-left: 5px;">'+player_profile.personaname+'</a>';
+				let karma = row.insertCell(2);
+				karma.innerHTML = player.Karma;
+				let rdm_percent = row.insertCell(3);
+				if(Object.keys(json_stats.data).length === 0){
+					rdm_percent.innerHTML = 'N/A';
+				} else {
+					rdm_percent.innerHTML = getRdmPercent()+'% RDM';
+				}
+			}
+
+			function getRdmPercent(){
+				return Math.round((player_data[0].bad_kills /(player_data[0].killed_innocents + player_data[0].killed_traitors + player_data[0].killed_detectives))*100);
+			}
+
+			function destoryOld(){
+				const table = document.getElementById("karmaData");
+				table.innerHTML="";
+			}
+		}
+
 		</script>
     </body>
   
