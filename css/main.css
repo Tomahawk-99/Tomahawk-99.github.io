@@ -83,6 +83,16 @@ nav a {
     #nav-mobile{
         display: none;
     }
+
+    .mobile {
+        display: none;
+    }
+}
+
+@media only screen and (max-width: 1450px) {
+    .mobile-button {
+        display: none;
+    }
 }
 
 nav ul li a{
