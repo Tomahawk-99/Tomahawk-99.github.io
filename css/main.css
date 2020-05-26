@@ -79,6 +79,12 @@ nav a {
     color: #3c3b3b;
  }
 
+@media only screen and (max-width:1860px) {
+    #nav-mobile{
+        display: none;
+    }
+}
+
 nav ul li a{
    color: #3c3b3b;
    letter-spacing: 0.25em;

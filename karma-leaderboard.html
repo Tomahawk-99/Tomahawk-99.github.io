@@ -159,7 +159,12 @@
 			}
 
 			function getRdmPercent(){
-				return Math.round((player_data[0].bad_kills /(player_data[0].killed_innocents + player_data[0].killed_traitors + player_data[0].killed_detectives))*100);
+				var percent = (player_data[0].bad_kills /(player_data[0].killed_innocents + player_data[0].killed_traitors + player_data[0].killed_detectives))*100;
+				if (percent < 1) {
+					return Math.round(percent*10) / 10;
+				} else {
+					return Math.round(percent);
+				}
 			}
 
 			function destoryOld(){
