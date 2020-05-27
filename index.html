@@ -128,7 +128,14 @@
 		Httpreq.send(null);
 		return Httpreq.responseText;          
 	}
-
+	var json_items = JSON.parse(Get('https://clwo.eu/jailbreak/api/v2/ttt_shopitems.php'));
+    var item_descriptions = json_items.data;
+    var itemMap = new Map();
+    for(var entry of Object.entries(item_descriptions)) {
+        var itemID = entry[1].itemshort;
+        var name = entry[1].itemlong;
+        itemMap.set(itemID, name);
+    }
 	var json_obj = JSON.parse(Get('https://clwo.eu/jailbreak/api/v2/ttt_shopstats.php'));
 	var last_purchases = json_obj.data.LastPurchaseDateTime.data;
 	var purchase_index = [];
@@ -148,7 +155,7 @@
 			var key = purchase_index[i];
 			let row = table.insertRow();
 			let item = row.insertCell(0);
-			item.innerHTML = key;
+			item.innerHTML = itemMap.get(key);
 			let time = row.insertCell(1);
 			var purchase_time = String(Number(last_purchases[key].substring(11, 13))+1)+last_purchases[key].substring(13, 16);
 			time.innerHTML = purchase_time;

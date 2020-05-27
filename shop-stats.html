@@ -84,6 +84,14 @@
                     return Httpreq.responseText;          
                 }
 
+                var json_items = JSON.parse(Get('https://clwo.eu/jailbreak/api/v2/ttt_shopitems.php'));
+                var item_descriptions = json_items.data;
+                var itemMap = new Map();
+                for(var entry of Object.entries(item_descriptions)) {
+                    var itemID = entry[1].itemshort;
+                    var name = entry[1].itemlong;
+                    itemMap.set(itemID, name);
+                }
                 var json_obj = JSON.parse(Get('https://clwo.eu/jailbreak/api/v2/ttt_shopstats.php'));
                 var last_day = json_obj.data.TotalPurchases.data.LastDay.ALL;
                 var last_month = json_obj.data.TotalPurchases.data.LastMonth.ALL;
@@ -97,7 +105,7 @@
 
                 function addDataRows(jsonData, dataTable){
                     for (var key of Object.keys(jsonData)) {
-                        itemsArr.push(key);
+                        itemsArr.push(itemMap.get(key));
                         itemsArr.push(jsonData[key]);
                         dataTable.addRow(itemsArr);
                         itemsArr.length = 0;
