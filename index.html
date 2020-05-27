@@ -180,7 +180,7 @@
 	 	for(i; i<max_pages;i++) {
 			 if (i==0) {
 				 for (var entry of Object.entries(player_stats.data)) {
-					if(entry[1].rounds_played < 1) {
+					if(entry[1].rounds_played < 50) {
 						continue;
 					}
 					var round_rating = getRoundRating(entry[1]);
@@ -193,11 +193,11 @@
 			} else {
 				player_stats = JSON.parse(Get('https://clwo.eu/jailbreak/api/v2/ttt_stats.php?Page='+(i+1)));
 				for (var entry of Object.entries(player_stats.data)) {
-					//var round_rating = getRoundRating(entry[1]);
+					var round_rating = getRoundRating(entry[1]);
 					var damage_rating = getDamageRating(entry[1]);
 					var kill_rating = getKillRating(entry[1]);
 					var sleuth_rating = getSleuthRating(entry[1]);
-					var player_rating = damage_rating+kill_rating+sleuth_rating;
+					var player_rating = round_rating+damage_rating+kill_rating+sleuth_rating;
 					karmaGain.set(entry[1].AccountID, player_rating);
 				}
 			}
