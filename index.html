@@ -22,7 +22,7 @@
               	<ul id="nav-mobile" class="left hide-on-med-and-down">
 					<li><a href="https://clwo.eu/" class="logo"><span class="logo-span">CLWO.EU</span></a></li>
 					<li><a href="index.html"><i class="material-icons left">dashboard</i><span>QUICK DASH</span></a></li>
-					<li><a href="player-profile.html"><i class="material-icons left">account_box</i><span>player profile</span></a></li>
+					<li><a class="dropdown-trigger" href="#!" data-target="dropdown1"><i class="material-icons left">account_box</i><span>player stats</span></a></li>
                 	<li><a href="karma-leaderboard.html"><i class="material-icons left">grade</i><span>KARMA LEADERBOARD</span></a></li>
 					<li><a href="shop-stats.html"><i class="material-icons left">shopping_cart</i><span>SHOP STATS</span></a></li>
                 	<li><a href="https://staff.aimless.eu/cases/"><i class="material-icons left">trending_up</i><span>RDM CASE TRACKER</span></a></li>
@@ -32,12 +32,17 @@
             </div>
           </nav>
 	</div>
-	
+	<!-- Dropdown Structure -->
+	<ul id="dropdown1" class="dropdown-content">
+		<li><a href="player-profile.html">Player Lookup</a></li>
+		<li><a href="player-leaderboards.html">Player Leaderboards</a></li>
+		<li><a href="staff-team.html">Staff Team</a></li>
+ 	</ul>
 	<!--Sidebar-->
 	<div class="sidebar">
 		<ul class="sidenav" id="mobile-demo">
 			<li><a href="index.html"><i class="material-icons left">dashboard</i><span>QUICK DASH</span></a></li>
-			<li><a href="player-profile.html"><i class="material-icons left">account_box</i><span>player profile</span></a></li>
+			<li><a href="player-profile.html"><i class="material-icons left">account_box</i><span>player stats</span></a></li>
 			<li><a href="karma-leaderboard.html"><i class="material-icons left">grade</i><span>KARMA LEADERBOARD</span></a></li>
 			<li><a href="shop-stats.html"><i class="material-icons left">shopping_cart</i><span>SHOP STATS</span></a></li>
 			<li><a href="https://staff.aimless.eu/cases/"><i class="material-icons left">trending_up</i><span>RDM CASE TRACKER</span></a></li>
@@ -128,6 +133,7 @@
 		Httpreq.send(null);
 		return Httpreq.responseText;          
 	}
+	
 	var json_items = JSON.parse(Get('https://clwo.eu/jailbreak/api/v2/ttt_shopitems.php'));
     var item_descriptions = json_items.data;
     var itemMap = new Map();
@@ -162,7 +168,7 @@
 		}
 	}
 
-	function topMonthKarmaTable(map){
+	function topPlayers(map){
 		const table = document.getElementById("karmaData");
 		for(var i = 0; i < 8; i++) {
 			var player = map.entries().next().value;
@@ -172,7 +178,6 @@
 			let pfp = row.insertCell(0);
 			pfp.innerHTML = '<img src="'+player_profile.avatarfull+'" alt="" width="30px" height="30px">';
 			let account = row.insertCell(1);
-			console.log();
 			account.innerHTML = '<a href="'+player_profile.profileurl+'" class="truncate" style="padding-left: 5px;">'+player_profile.personaname+'</a>';
 			let karma = row.insertCell(2);
 			karma.innerHTML = +Math.round(player[1])+' player rating';
@@ -180,7 +185,7 @@
 		}
 	}
 
-	function getTopKarmaGain(){
+	function getTopPlayers(){
 		let karmaGain = new Map();
 		const max_pages = player_stats.pagination.max_pages;
 		var i = 0;
@@ -195,16 +200,25 @@
 					var kill_rating = getKillRating(entry[1]);
 					var sleuth_rating = getSleuthRating(entry[1]);
 					var player_rating = round_rating+damage_rating+kill_rating+sleuth_rating;
+					if(isNaN(player_rating)) {
+						continue;
+					}
 					karmaGain.set(entry[1].AccountID, player_rating);
 				}
 			} else {
 				player_stats = JSON.parse(Get('https://clwo.eu/jailbreak/api/v2/ttt_stats.php?Page='+(i+1)));
 				for (var entry of Object.entries(player_stats.data)) {
+					if(entry[1].rounds_played < 50) {
+						continue;
+					}
 					var round_rating = getRoundRating(entry[1]);
 					var damage_rating = getDamageRating(entry[1]);
 					var kill_rating = getKillRating(entry[1]);
 					var sleuth_rating = getSleuthRating(entry[1]);
 					var player_rating = round_rating+damage_rating+kill_rating+sleuth_rating;
+					if(isNaN(player_rating)) {
+						continue;
+					}
 					karmaGain.set(entry[1].AccountID, player_rating);
 				}
 			}
@@ -250,7 +264,7 @@
 	}
 
 	lastPurchasesTable();
-	topMonthKarmaTable(getTopKarmaGain());
+	topPlayers(getTopPlayers());
 	</script>
 	<script type="text/javascript" src="js/player-count.js"></script>
 	

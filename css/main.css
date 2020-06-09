@@ -305,3 +305,22 @@ table#topLeaderboard td:nth-child(5) {
     width: 15%;
 }
 
+table#top_traitor td:nth-child(1) {  
+    width: 10%;
+}
+
+table#top_traitor td:nth-child(2) {  
+    width: 30%;
+}
+
+table#top_traitor td:nth-child(3) {  
+    width: 30%;
+}
+
+table#top_traitor td:nth-child(4) {  
+    width: 30%;
+}
+
+.tabs-content.carousel.carousel-slider {
+    height: 800px !important;
+}
