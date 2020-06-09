@@ -179,8 +179,8 @@
 			pfp.innerHTML = '<img src="'+player_profile.avatarfull+'" alt="" width="30px" height="30px">';
 			let account = row.insertCell(1);
 			account.innerHTML = '<a href="'+player_profile.profileurl+'" class="truncate" style="padding-left: 5px;">'+player_profile.personaname+'</a>';
-			let karma = row.insertCell(2);
-			karma.innerHTML = +Math.round(player[1])+' player rating';
+			let rating = row.insertCell(2);
+			rating.innerHTML = +Math.round(player[1])+' player rating';
 			map.delete(player[0]);
 		}
 	}

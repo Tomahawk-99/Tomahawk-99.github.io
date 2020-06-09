@@ -134,7 +134,8 @@
 		window.onload = function() {
 			changePage(1);
 		};
-	
+		
+		var counter = 0;
 		function topKarmaTable(page){
 			destoryOld();
 			
@@ -149,18 +150,21 @@
 				var player_data = json_stats.data;
 				var player_profile = json_player.SteamData;
 				let row = table.insertRow();
-				let pfp = row.insertCell(0);
+				let placement = row.insertCell(0);
+				placement.innerHTML = counter+1 + ".";
+				let pfp = row.insertCell(1);
 				pfp.innerHTML = '<img src="'+player_profile.avatarfull+'" alt="" width="30px" height="30px">';
-				let account = row.insertCell(1);
+				let account = row.insertCell(2);
 				account.innerHTML = '<a href="'+player_profile.profileurl+'" class="truncate" style="padding-left: 5px;">'+player_profile.personaname+'</a>';
-				let karma = row.insertCell(2);
+				let karma = row.insertCell(3);
 				karma.innerHTML = player.Karma;
-				let rdm_percent = row.insertCell(3);
+				let rdm_percent = row.insertCell(4);
 				if(Object.keys(json_stats.data).length === 0){
 					rdm_percent.innerHTML = 'N/A';
 				} else {
 					rdm_percent.innerHTML = getRdmPercent()+'% RDM';
 				}
+				counter += 1;
 			}
 
 			function getRdmPercent(){

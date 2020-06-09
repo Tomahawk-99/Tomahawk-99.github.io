@@ -52,7 +52,7 @@
 	</div>
 
 	<div class="container row" style="border: 1px solid rgba(160, 160, 160, 0.3); background-color: white; padding-bottom: 1em; height: 800px;">
-		<ul id="tabs-swipe-demo" class="tabs" style="height: auto;">
+		<ul id="tabs-swipe-demo" class="tabs" style="height: auto; margin-bottom: 1em;">
 			<li class="tab col s3"><a class="active" href="#traitor">Top Traitor</a></li>
 			<li class="tab col s3"><a class="active" href="#inno">Top Innocent</a></li>
 			<li class="tab col s3"><a class="active" href="#sleuth">Top Sleuth</a></li>
@@ -74,8 +74,8 @@
 			</table>
 		</div>
 		<div id="stonks" class="col s12" style="height: auto;">
-			<table id="'#'" class="highlight">
-				<tbody id="#"></tbody>
+			<table id="'top_stonks'" class="highlight">
+				<tbody id="stonkData"></tbody>
 			</table>
 		</div>
 	</div>
@@ -167,6 +167,8 @@
 				account.innerHTML = '<a href="'+player_profile.profileurl+'" class="truncate" style="padding-left: 5px;">'+player_profile.personaname+'</a>';
 				let killed_traitor = row.insertCell(2);
 				killed_traitor.innerHTML = player_kills[0].killed_traitors+' traitors killed';
+				let traitors_revealed = row.insertCell(3);
+				traitors_revealed.innerHTML = player_kills[0].scanned_traitors+" traitors revealed"
 				map.delete(player[0]);
 				i++;
 			}
@@ -224,33 +226,94 @@
 						if(entry[1].scanned_traitors  < 1 || entry[1].scanned_bodies < 1 ){
 							continue;
 						}
-						if(entry[1].scanned_traitors > entry[1].scanned_bodies){
-							continue;
-						}
-						if(entry[1].scanned_bodies < 50 && entry[1].identified_bodies < 25){
+						if(entry[1].scanned_bodies < 100 || entry[1].identified_bodies < 100){
 							continue;
 						}
 						var tase_rate =Math.round((entry[1].scanned_traitors/entry[1].scanned_bodies)*100);
+						if (tase_rate > 100) {
+							continue;
+						}
 						sleuths.set(entry[1].AccountID, tase_rate);
 					}
 				} else {
+					player_stats = JSON.parse(Get('https://clwo.eu/jailbreak/api/v2/ttt_stats.php?Page='+(i+1)));
 					for (var entry of Object.entries(player_stats.data)) {
 						if(entry[1].scanned_traitors  < 1 || entry[1].scanned_bodies < 1 ){
 							continue;
 						}
-						if(entry[1].scanned_traitors > entry[1].scanned_bodies){
-							continue;
-						}
-						if(entry[1].scanned_bodies < 50 && entry[1].identified_bodies < 25){
+						if(entry[1].scanned_bodies < 100 || entry[1].identified_bodies < 100){
 							continue;
 						}
 						var tase_rate = Math.round((entry[1].scanned_traitors/entry[1].scanned_bodies)*100);
+						if (tase_rate > 100) {
+							continue;
+						}
 						sleuths.set(entry[1].AccountID, tase_rate);
 					}
 				}
 			}
-			console.log(sleuths.size);
 			return getTopTen(sleuths);
+		}
+
+		function topStonksTable(map){
+			const table = document.getElementById("stonkData");
+			var i = 0;
+			while(i < 10) {
+				var player = map.entries().next().value;
+				var json_player= JSON.parse(Get('https://clwo.eu/jailbreak/api/v2/accounthelper.php?AccountID='+player[0]));
+				var json_kills = JSON.parse(Get('https://clwo.eu/jailbreak/api/v2/ttt_stats.php?AccountID='+player[0]));
+				var player_kills = json_kills.data;
+				var player_profile = json_player.SteamData;
+				let row = table.insertRow();
+				let pfp = row.insertCell(0);
+				pfp.innerHTML = '<img src="'+player_profile.avatarfull+'" alt="" width="30px" height="30px">';
+				let account = row.insertCell(1);
+				account.innerHTML = '<a href="'+player_profile.profileurl+'" class="truncate" style="padding-left: 5px;">'+player_profile.personaname+'</a>';
+				let credits_earned = row.insertCell(2);
+				credits_earned.innerHTML = numberWithCommas(Number(player[1])) +' credits earned';
+				let items_bought = row.insertCell(3);
+				items_bought.innerHTML = player_kills[0].bought_items+' items bought';
+				map.delete(player[0]);
+				i++;
+			}
+
+			function numberWithCommas(x) {
+				return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+			}
+		}
+
+		function getTopStonks(){
+			let players = new Map();
+			const max_pages = player_stats.pagination.max_pages;
+			var i = 0;
+			for(i; i<max_pages;i++) {
+				if (i==0) {
+					for (var entry of Object.entries(player_stats.data)) {
+						if(entry[1].items_bought < 100 || entry[1].killed_innocents < 50 || entry[1].killed_traitors < 50 || entry[1].killed_detectives < 50 
+							|| entry[1].identified_bodies < 50 || entry[1].identified_traitors < 50 || entry[1].scanned_bodies < 50 || entry[1].scanned_traitors < 50) {
+							continue;
+						}
+						var credits_earned =(entry[1].killed_innocents*500 + entry[1].killed_traitors*3000 + entry[1].killed_detectives*2000
+							+ (entry[1].identified_bodies - entry[1].identified_traitors)*300 + entry[1].identified_traitors*500 + entry[1].scanned_traitors*3000);
+						console.log(credits_earned);
+						players.set(entry[1].AccountID, credits_earned);
+					}
+				} else {
+					player_stats = JSON.parse(Get('https://clwo.eu/jailbreak/api/v2/ttt_stats.php?Page='+(i+1)));
+					for (var entry of Object.entries(player_stats.data)) {
+						if(entry[1].items_bought < 100 || entry[1].killed_innocents < 50 || entry[1].killed_traitors < 50 || entry[1].killed_detectives < 50 
+							|| entry[1].identified_bodies < 50 || entry[1].identified_traitors < 50 || entry[1].scanned_bodies < 50 || entry[1].scanned_traitors < 50) {
+							continue;
+						}
+						var credits_earned =(entry[1].killed_innocents*500 + entry[1].killed_traitors*3000 + entry[1].killed_detectives*2000
+							+ (entry[1].identified_bodies - entry[1].identified_traitors)*300 + entry[1].identified_traitors*500 + entry[1].scanned_traitors*3000);
+							console.log(credits_earned);
+						players.set(entry[1].AccountID, credits_earned);
+					}
+				}
+			}
+			return getTopTen(players);
+
 		}
 
 		function getTopTen(players) {
@@ -265,7 +328,6 @@
 				}
 				map.delete(max[0]);
 				top10.set(max[0], max[1]);
-				console.log(top10.size);
 			}
 			return top10;
 		}
@@ -273,6 +335,7 @@
 	topTraitorTable(getTopTraitor());
 	topInnoTable(getTopInno());
 	topSleuthTable(getTopSleuth());
+	topStonksTable(getTopStonks());
 	</script>
     </body>
   
